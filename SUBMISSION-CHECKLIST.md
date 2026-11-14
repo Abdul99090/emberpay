@@ -24,9 +24,9 @@ official hackathon page on 15 Nov 2026.
 - [x] BUIDL field draft — [BUIDL.md](BUIDL.md)
 
 ## Remaining — needs a browser session (logged-in DoraHacks)
-- [ ] Enable GitHub Pages for the repo (Settings → Pages, or
-      `gh api -X POST repos/Abdul99090/emberpay/pages -f source.branch=main -f source.path=/`)
-      and confirm https://abdul99090.github.io/emberpay/ loads with the banner
+- [x] GitHub Pages enabled (API, 15 Nov) and verified live:
+      https://abdul99090.github.io/emberpay/ serves the demo with banner
+- [ ] Click through the live demo once (create invoice → open link → pay view)
 - [ ] Click through the live demo once (create invoice → open link → pay view)
 - [ ] Test WizardConnect pairing once with a real Paytaca wallet
 - [ ] Fill the Widget Factory presentation (template:
