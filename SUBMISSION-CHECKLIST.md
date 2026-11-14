@@ -29,10 +29,12 @@ official hackathon page on 15 Nov 2026.
 - [ ] Click through the live demo once (create invoice → open link → pay view)
 - [ ] Click through the live demo once (create invoice → open link → pay view)
 - [ ] Test WizardConnect pairing once with a real Paytaca wallet
-- [ ] Fill the Widget Factory presentation (template:
+- [x] Fill the Widget Factory presentation (template:
       https://docs.google.com/presentation/d/1Yfuk9CJkf4U9M_WukcELhumWgj3Ak6345Ewy8hSp-Hk/edit?usp=sharing ),
       publish it, put ITS link in the demo banner (replacing the template
-      link) and in BUIDL.md
+      link) and in BUIDL.md — filled copy:
+      https://docs.google.com/presentation/d/1KMziZ4_2LiXByGNdkvs1iaxOPcsq13UImuAG0UrfL94/edit?usp=sharing ;
+      banner also links the BUIDL (https://dorahacks.io/build/51157)
 - [ ] Submit the BUIDL on DoraHacks using the fields in BUIDL.md
       (hackathon page → Submit BUIDL; account `hacker8d060a3` is registered)
 

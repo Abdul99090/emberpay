@@ -4,6 +4,8 @@
 
 🌐 Live demo: https://abdul99090.github.io/emberpay/ ·
 💻 This repo: https://github.com/Abdul99090/emberpay ·
+📊 Presentation: https://docs.google.com/presentation/d/1KMziZ4_2LiXByGNdkvs1iaxOPcsq13UImuAG0UrfL94/edit?usp=sharing ·
+🏆 BUIDL: https://dorahacks.io/build/51157 ·
 🏆 Built for [BCH BLAZE 2026](https://dorahacks.io/hackathon/bchblaze2026) — Mainnet Track
 
 ---

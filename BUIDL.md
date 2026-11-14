@@ -56,8 +56,10 @@ recurring and split payment links, token price oracles, merchant webhooks.
 ## Links
 - **Live demo:** https://abdul99090.github.io/emberpay/
 - **GitHub repo:** https://github.com/Abdul99090/emberpay
-- **Presentation (Widget Factory template):** TODO — replace with the filled
-  copy before submitting; the demo banner must link to the same URL.
+- **Presentation (Widget Factory):**
+  https://docs.google.com/presentation/d/1KMziZ4_2LiXByGNdkvs1iaxOPcsq13UImuAG0UrfL94/edit?usp=sharing
+  (the demo banner links to this same URL)
+- **DoraHacks BUIDL:** https://dorahacks.io/build/51157
 - **CashTokens address (EMBER2026 votes / donations):**
   `bitcoincash:zqcz8jfpdssmzhxs7h2ddkfhllkfldy3vvzq8mlwt5`
 - **BCH donation address:**
