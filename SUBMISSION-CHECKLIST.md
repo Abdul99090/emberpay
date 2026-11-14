@@ -13,7 +13,12 @@ official hackathon page on 15 Nov 2026.
 - [x] Top-of-page banner on the demo: presentation link, GitHub link,
       CashTokens EMBER2026 donation/voting address
 - [x] Public GitHub repo with source + README
-- [x] Test suite green (19/19) — `npm test`
+- [x] Test suite green (25/25, incl. CashToken conservation tests) — `npm test`
+- [x] CashTokens as the core engine: token-denominated invoices (fungible +
+      NFT), token-aware addressing, tested token-transfer builder (`src/tx.js`)
+- [x] README restructured to the winner pattern: problem → 1-sentence
+      solution → verifiable proof (real terminal output, explorer-linked
+      addresses, exact numbers) → 3-step try-it → challenges/honesty section
 - [x] Project wallet generated; public addresses in `project-addresses.json`
       (private key stored outside the repo)
 - [x] BUIDL field draft — [BUIDL.md](BUIDL.md)

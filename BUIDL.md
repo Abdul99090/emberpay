@@ -23,22 +23,35 @@ logo design" — and EmberPay's invoice assistant extracts the amount, label
 and note, then encodes the whole invoice into a single shareable link. No
 server, no account, no database: the link *is* the invoice.
 
+CashTokens are the engine, not a bolt-on: the same invoice format is
+denominated in BCH or in ANY CashToken — fungible amounts, or one specific
+NFT. The link carries the full token terms (category, amount / NFT
+commitment), payments land on token-aware addresses, and EmberPay's
+transaction builder assembles the real CashToken transfer with exact
+conservation (token change returns to the payer; the builder refuses a
+payment it cannot cover instead of silently burning tokens). That is a
+payment primitive that only exists because BCH has native tokens.
+
 The payer opens the link and pays in seconds: scan the BIP21 QR with any
 major BCH wallet (Paytaca, Selene, Electron Cash), or connect via
 WizardConnect. Either way the payment is a real Bitcoin Cash mainnet
 transaction, signed by the payer's own wallet — EmberPay is fully
-non-custodial and never touches keys or coins. Under the hood, Libauth
-handles CashAddress/token-address logic, and a tested transaction builder
-(coin selection, dust-aware change, 1 sat/byte fee estimation) prepares the
-unsigned transactions for the WizardConnect signing flow.
+non-custodial and never touches keys or coins. Under the hood: Libauth for
+CashAddress/token logic, integer-satoshi (BigInt) money math throughout,
+and a 25-test suite (all passing) covering the invoice codec, the language
+parser, address derivation, and BCH + CashToken transaction assembly —
+including byte-level decode checks of assembled token transfers.
+Typical fees: 226 sats for a standard BCH payment, 488 sats for a tested
+fungible-token payment, at 1 sat/byte.
 
-BCH is the right chain for this: fees of a fraction of a cent make tips,
-micropayments and market-stall invoices viable, and CashTokens support
-means the same link family can grow into token-denominated invoices.
+Stated honestly: the WizardConnect pairing/pubkey layer is implemented
+against the official packages; its sign-and-broadcast step still needs
+live UTXO discovery (indexer) wired in, so the fully-proven send path in
+this submission is the BIP21 QR/deep-link flow. The transaction builders
+for the connected flow are complete and unit-tested.
 
-Roadmap: in-browser UTXO discovery for a full WizardConnect
-sign-and-broadcast demo, CashTokens-denominated invoices, recurring and
-split payment links, and merchant webhooks.
+Roadmap: in-browser UTXO discovery for end-to-end WizardConnect sends,
+recurring and split payment links, token price oracles, merchant webhooks.
 
 ## Links
 - **Live demo:** https://abdul99090.github.io/emberpay/
@@ -54,8 +67,8 @@ split payment links, and merchant webhooks.
 JavaScript (ES modules, no build step): Libauth for address/transaction
 primitives, official @wizardconnect/dapp + @wizardconnect/core packages for
 wallet connection, BIP21 for universal QR/deep-link payments, node:test for
-the 19-test suite covering the invoice codec, the language parser, address
-derivation and transaction assembly.
+the 25-test suite covering the invoice codec, the language parser, address
+derivation and BCH + CashToken transaction assembly.
 
 ## Team
 Solo: bejo — DoraHacks `hacker8d060a3`, GitHub `Abdul99090`.

@@ -70,6 +70,23 @@
         <input id="f-label" type="text" placeholder="Logo design" />
       </label>
     </div>
+    <div class="row">
+      <label class="field">
+        <span>Asset</span>
+        <select id="f-asset">
+          <option value="bch">Bitcoin Cash (BCH)</option>
+          <option value="cashtoken">CashToken (fungible)</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>Token amount + symbol (CashToken only)</span>
+        <input id="f-token" type="text" placeholder="100 EMBER" />
+      </label>
+    </div>
+    <label class="field">
+      <span>Token category id (CashToken only, 64 hex chars)</span>
+      <input id="f-token-category" type="text" spellcheck="false" placeholder="e.g. the EMBER2026 category id" />
+    </label>
     <label class="field">
       <span>Note (optional)</span>
       <input id="f-memo" type="text" placeholder="Thank you!" />
@@ -112,6 +129,13 @@
       <li><strong>Share</strong> — the invoice becomes a single link. No server, no account, no database: the link <em>is</em> the invoice.</li>
       <li><strong>Get paid</strong> — the payer scans the QR or taps the link and confirms in their own wallet (WizardConnect or any BIP21 wallet). Settlement is on-chain BCH: seconds, ~1 sat/byte fees.</li>
     </ol>
+    <p><strong>CashTokens are the engine, not an afterthought:</strong> an invoice can be
+    denominated in <em>any</em> CashToken — fungible tokens or a specific NFT. The link
+    carries the full token terms (category, amount / NFT commitment), payments land on
+    token-aware addresses, and EmberPay's tested transaction builder assembles the
+    token transfer with exact conservation: token change returns to the payer,
+    nothing is silently burned. That's a payment primitive that only exists because
+    BCH has native tokens.</p>
     <p class="hint">Demo tip: the recipient field is pre-filled with EmberPay's own
     project address, so you can try the full flow immediately — send any tiny
     amount to test, or just explore. Community-Choice votes: send EMBER2026

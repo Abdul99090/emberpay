@@ -42,6 +42,11 @@ function onParse() {
   const parsed = parseInvoiceText($('nl-input').value);
   if (parsed.to) $('f-to').value = parsed.to;
   if (parsed.amountSats) $('f-amount').value = satoshisToBch(BigInt(parsed.amountSats));
+  if (parsed.tokenAmount) {
+    $('f-asset').value = 'cashtoken';
+    $('f-token').value = `${parsed.tokenAmount} ${parsed.tokenSymbol ?? ''}`.trim();
+    if (parsed.tokenCategory) $('f-token-category').value = parsed.tokenCategory;
+  }
   if (parsed.label) $('f-label').value = parsed.label;
   if (parsed.memo) $('f-memo').value = parsed.memo;
   $('create-error').textContent = parsed.missing.length
@@ -52,9 +57,30 @@ function onParse() {
 function onCreate() {
   $('create-error').textContent = '';
   try {
+    let asset = { type: 'bch' };
+    let to = $('f-to').value.trim();
+    if ($('f-asset').value === 'cashtoken') {
+      const tokenBits = $('f-token').value.trim().split(/\s+/);
+      asset = {
+        type: 'cashtoken',
+        category: $('f-token-category').value.trim(),
+        amount: tokenBits[0],
+        symbol: tokenBits[1] ?? undefined,
+      };
+      // Token payments must land on a token-aware address: if the form
+      // still holds the project's plain address, swap in its token twin.
+      if (state.project && to === state.project.mainnet) {
+        to = state.project.mainnetToken;
+        $('f-to').value = to;
+      }
+    }
     const invoice = createInvoice({
-      to: $('f-to').value.trim(),
-      amountSats: bchToSatoshis($('f-amount').value.trim() || '0'),
+      to,
+      amountSats:
+        asset.type === 'cashtoken'
+          ? 1000n
+          : bchToSatoshis($('f-amount').value.trim() || '0'),
+      asset,
       label: $('f-label').value.trim(),
       memo: $('f-memo').value.trim(),
     });
@@ -77,10 +103,21 @@ function onCreate() {
 function showPayView(invoice) {
   $('view-create').classList.add('hidden');
   $('view-pay').classList.remove('hidden');
-  $('p-amount').textContent = `${satoshisToBch(BigInt(invoice.amountSats))} BCH`;
+  const isToken = invoice.asset?.type === 'cashtoken';
+  $('p-amount').textContent = isToken
+    ? `${invoice.asset.amount} ${invoice.asset.symbol ?? 'tokens'}`
+    : `${satoshisToBch(BigInt(invoice.amountSats))} BCH`;
   $('p-label').textContent = invoice.label || 'Payment request';
   $('p-to').textContent = invoice.to;
-  $('p-memo').textContent = invoice.memo ? `“${invoice.memo}”` : '';
+  const details = [];
+  if (isToken) {
+    details.push(
+      `CashToken category ${invoice.asset.category.slice(0, 16)}… · ` +
+        `rides on ${invoice.amountSats} sats of BCH (carrier)`,
+    );
+  }
+  if (invoice.memo) details.push(`“${invoice.memo}”`);
+  $('p-memo').textContent = details.join(' — ');
   const uri = buildPaymentUri({
     address: invoice.to,
     amountSats: BigInt(invoice.amountSats),

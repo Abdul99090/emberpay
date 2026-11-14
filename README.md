@@ -1,138 +1,199 @@
 # 🔥 EmberPay
 
-**One sentence in. One payment link out.**
+**Payment requests for Bitcoin Cash and CashTokens that travel as a single link.**
 
-EmberPay turns a plain sentence — *"Charge 0.01 BCH for the logo design"* — into a
-shareable Bitcoin Cash payment link. The recipient needs no account, no server and
-no database: the invoice lives entirely inside the link itself. The payer opens it,
-scans a QR (or connects with WizardConnect), confirms in their own wallet, and a
-real BCH mainnet transaction settles in seconds for ~1 sat/byte in fees.
-
-Built for **[BCH BLAZE 2026](https://dorahacks.io/hackathon/bchblaze2026)** — Mainnet Track.
-
-🌐 **Live demo:** https://abdul99090.github.io/emberpay/
-💚 **Community-Choice votes / donations (CashTokens, incl. EMBER2026):**
-`bitcoincash:zqcz8jfpdssmzhxs7h2ddkfhllkfldy3vvzq8mlwt5`
+🌐 Live demo: https://abdul99090.github.io/emberpay/ ·
+💻 This repo: https://github.com/Abdul99090/emberpay ·
+🏆 Built for [BCH BLAZE 2026](https://dorahacks.io/hackathon/bchblaze2026) — Mainnet Track
 
 ---
 
 ## The problem
 
-Getting paid in crypto is still awkward. A freelancer, a market seller, or a
-charity has to paste a raw address, separately tell the payer how much to send,
-hope they type both correctly, and then reconcile "which payment was for what?"
-by hand. Payment-request standards exist (BIP21), but almost nobody can produce
-one without a wallet manual in hand — so in practice people screenshot addresses
-and amounts in chat apps, with the errors and fraud risk that implies.
+Ask a freelancer how they get paid in crypto and you will hear the same story
+everywhere — in BCH community chats, in marketplace groups, in our own
+experience selling digital work:
+
+1. They paste a **raw address** into a chat.
+2. In a **separate message**, they say how much to send and what it is for.
+3. The payer copies both **by hand**, into a wallet, hoping no character
+   changed on the way.
+4. Days later, neither side can prove which payment belonged to which job.
+
+One wrong character means money to nowhere. One forgotten amount means an
+awkward "you underpaid" conversation. And token payments are worse: a
+CashToken sent to a non-token address, or with the wrong category, is a
+support ticket nobody can answer. Payment-request standards exist (BIP21),
+but producing a correct one by hand is wallet-manual trivia — so in practice,
+nobody uses them, and the screenshot-and-pray workflow wins by default.
 
 ## The solution
 
-EmberPay makes a payment request as easy to create and share as a text message:
+**EmberPay turns one sentence — *"Charge 0.01 BCH for the logo design"* — into
+a single shareable link that carries the complete payment request (recipient,
+amount, label, note — and for CashTokens: category, amount, NFT identity),
+which any BCH wallet can pay in one confirmation.**
 
-1. **Describe** — type one sentence. EmberPay's invoice assistant extracts the
-   amount (BCH or satoshis), the label and an optional note. The parser is
-   deterministic and runs 100% locally — in the browser, in tests, offline.
-2. **Share** — the invoice is encoded into a single link
-   (`…/#/pay/<payload>`). No backend stores anything; the link *is* the invoice.
-3. **Get paid** — the link renders a payment card with a BIP21 QR that every
-   major BCH wallet (Paytaca, Selene, Electron Cash, …) scans and pre-fills,
-   plus a WizardConnect flow for connected wallets. Payment is a genuine
-   mainnet transaction, signed by the payer's own wallet. EmberPay is fully
-   non-custodial: it never sees a private key.
+No account. No server. No database. The link *is* the invoice.
 
-## Why Bitcoin Cash
+## Proof it works (verify everything yourself)
 
-- **Fees:** a payment costs ~226 sats (≈ a fraction of a cent) at 1 sat/byte —
-  micropayments and tips are actually viable.
-- **Speed:** 0-conf usability for small amounts; confirmations in minutes.
-- **CashTokens:** the same address family carries tokens — EmberPay's project
-  address accepts EMBER2026 votes for Community Choice out of the box.
-
-## Features
-
-- 🗣 **Natural-language invoice assistant** (`src/nlp.js`) — amount, recipient,
-  label and memo extracted from one sentence, with explicit "missing field"
-  reporting so the UI can guide the user.
-- 🔗 **Self-contained payment links** (`src/invoice.js`) — invoices serialize to
-  base64url payloads; integer-satoshi money math (BigInt) end-to-end, no floats.
-- 📷 **Universal BIP21 QR + deep link** (`src/payuri.js`) — works with every
-  BCH wallet today, no integration required on the payer side.
-- 🔌 **WizardConnect integration** (`wallet-connect.js`) — pairing via the
-  official `@wizardconnect/dapp` / `@wizardconnect/core` packages, HD pubkey
-  retrieval, and local address derivation with Libauth.
-- 🧾 **Transaction preparation** (`src/tx.js`) — largest-first coin selection,
-  dust-aware change handling and fee estimation, assembling the unsigned
-  transaction a wallet signs via WizardConnect. Pure and unit-tested.
-- 🛡 **Libauth throughout** (`src/address.js`) — the reference BCH library
-  handles CashAddress encoding/decoding (incl. token-aware addresses).
-
-## Quick start
-
-```bash
-# Run the test suite (19 tests, node:test, no network needed)
-npm test
-
-# Try the invoice assistant in your terminal
-npm run demo -- "Charge 0.01 BCH for the logo design, note: thank you!"
-
-# Serve the web demo locally
-npx serve .        # or: python3 -m http.server
-# then open http://localhost:3000 (port depends on the server)
-```
-
-No build step: the demo is plain ES modules + the shared `src/` logic.
-
-## Project structure
+**1. The whole pipeline, in a terminal, right now** — actual output of
+`npm run demo` in this repo:
 
 ```
-index.html          Live demo (GitHub Pages) incl. the BLAZE banner
-app.js              Demo UI wiring (create + pay views)
-wallet-connect.js   WizardConnect pairing / pubkey / address derivation
-style.css           Demo styling
-src/
-  invoice.js        Invoice model, satoshi math, link payload codec
-  nlp.js            Natural-language invoice assistant
-  payuri.js         BIP21 payment URI build/parse
-  address.js        CashAddress + token-address helpers (Libauth)
-  tx.js             Coin selection, fee estimation, unsigned tx assembly
-  libauth-helpers.js  P2PKH locking bytecode, tx serialization wrappers
-test/               node:test suites for every src module
-scripts/
-  demo-invoice.js   Terminal demo of the assistant
-  generate-wallet.js  Creates the project donation/voting wallet
-                      (key written outside the repo, mode 0600)
-project-addresses.json  Public project addresses (donations + EMBER2026 votes)
+🗣  "Charge 100 EMBER tokens for the sticker pack"
+
+🪙 CashToken invoice (EMBER), category 7e35a8031ca3bb09… (sample category for demo)
+📄 Invoice: {
+  "to": "bitcoincash:zqcz8jfpdssmzhxs7h2ddkfhllkfldy3vvzq8mlwt5",
+  "amountSats": "1000",
+  "asset": { "type": "cashtoken", "category": "7e35a8031ca3bb09…",
+             "amount": "100", "symbol": "EMBER" },
+  "label": "The sticker pack", …
+}
+🔗 Payment link: https://abdul99090.github.io/emberpay/#/pay/eyJ2IjoxLCJpZCI6…
+💸 BIP21 URI: bitcoincash:zqcz8jfpdssmzhxs7h2ddkfhllkfldy3vvzq8mlwt5?amount=0.00001&…
 ```
 
-## Architecture
+**2. The test suite** — `npm test`: **25 tests, 25 passing, 0 failing**
+(invoice codec, language parser, address derivation against the known
+hash160 of private key 1, BCH transaction assembly, and CashToken
+conservation — a token payment of 200 from a 500-token UTXO produces
+exactly 200 to the recipient and 300 token change, verified by decoding
+the assembled transaction byte-for-byte).
+
+**3. Real mainnet addresses you can inspect on any explorer:**
+- BCH donations: [`bitcoincash:qqcz8jfpdssmzhxs7h2ddkfhllkfldy3vv92593g58`](https://blockchair.com/bitcoin-cash/address/bitcoincash:qqcz8jfpdssmzhxs7h2ddkfhllkfldy3vv92593g58)
+- CashTokens (EMBER2026 Community-Choice votes land here): [`bitcoincash:zqcz8jfpdssmzhxs7h2ddkfhllkfldy3vvzq8mlwt5`](https://blockchair.com/bitcoin-cash/address/bitcoincash:zqcz8jfpdssmzhxs7h2ddkfhllkfldy3vvzq8mlwt5)
+
+## Try it yourself (3 steps)
+
+1. **Open the demo:** https://abdul99090.github.io/emberpay/ — type
+   *"Charge 0.01 BCH for the logo design"* (or *"Charge 100 EMBER tokens
+   for the sticker pack"*) and press **Create payment link**.
+2. **Open the link** on any device — you get a payment card with a QR code.
+3. **Scan & pay** with Paytaca, Selene or Electron Cash. The wallet
+   pre-fills a real mainnet transaction; you just confirm. (Send a tiny
+   amount — the pre-filled recipient is EmberPay's own project address,
+   so a test payment doubles as a donation.)
+
+Developers: `git clone` this repo → `npm test` → `npm run demo`.
+
+## How it works — CashTokens are the engine
+
+Most "BCH support" in payment tools means BCH-as-an-afterthought. EmberPay
+is built the other way: its invoice model is **asset-native**. One invoice
+format carries either BCH or *any* CashToken — fungible amounts, or one
+specific NFT (capability + commitment). That choice drives everything
+downstream:
+
+- **Links** encode the full token terms, not just an address.
+- **Addresses** switch to token-aware (`z…`) form automatically, so tokens
+  can't land on an address that can't hold them.
+- **Settlement** (`src/tx.js → buildUnsignedTokenPayment`) assembles the
+  real CashToken transfer: category-checked token inputs, BCH funding
+  inputs for the carrier amounts and fee, recipient output, token-change
+  output, BCH change. Conservation is enforced exactly — the builder
+  *refuses* a payment it cannot cover rather than silently burning the
+  difference. This is a primitive that only exists because BCH has native
+  tokens; on BTC there is nothing to build it with.
+
+Around that engine:
+
+- 🗣 **Invoice assistant** (`src/nlp.js`) — deterministic parser (no LLM
+  call, works offline): extracts BCH/sats amounts, token amounts + symbol
+  + category, recipient, label and memo from one sentence, and reports
+  exactly which fields it could not find.
+- 🔗 **Link codec** (`src/invoice.js`) — BigInt satoshi math end-to-end (no
+  floats near money), base64url payloads, strict re-validation on decode.
+- 📷 **BIP21 QR + deep link** (`src/payuri.js`) — the universal pay path
+  every major BCH wallet already understands.
+- 🔌 **WizardConnect** (`wallet-connect.js`) — pairing and HD pubkey
+  retrieval via the official `@wizardconnect/dapp` + `@wizardconnect/core`
+  packages; the payer address is derived locally with Libauth.
+- 🛡 **Libauth everywhere** (`src/address.js`) — the reference BCH library
+  for CashAddress encoding/decoding, incl. token-aware addresses.
 
 ```
  sentence ──► nlp.js ──► invoice.js ──► link (#/pay/<payload>)
                                             │
-                              ┌─────────────┴─────────────┐
-                              ▼                           ▼
+                              ┌─────────────┴──────────────┐
+                              ▼                            ▼
                         BIP21 QR / deep link      WizardConnect session
-                        (any BCH wallet)          (tx.js unsigned tx →
+                        (any BCH wallet)          (tx.js assembles the BCH
+                                                   or CashToken transfer →
                                                    wallet signs → mainnet)
 ```
 
-State: none. There is no server and no database in the payment path — a
-deliberate design choice: nothing to hack, nothing to shut down, nothing
-between a payer and a payee.
+## The numbers
 
-## Roadmap
+| | |
+|---|---|
+| Tests | **25 passing / 0 failing** (`node:test`, offline) |
+| Cost of a typical 1-in/2-out BCH payment | **226 sats** fee @ 1 sat/byte |
+| Cost of a fungible CashToken payment (2 in / 3 out, tested) | **488 sats** fee |
+| Server / database in the payment path | **0 / 0** |
+| Build step for the demo | **none** (plain ES modules) |
+| Private keys EmberPay ever touches | **0** (fully non-custodial) |
 
-- In-browser UTXO discovery via a public indexer so the WizardConnect
-  sign-and-broadcast path runs end-to-end in the demo (builder + tests already
-  in `src/tx.js`).
-- CashTokens-denominated invoices (pay a specific token amount, not just BCH).
-- Recurring payment links (subscriptions) and multi-recipient split links.
-- Optional payment notifications via webhook for merchants.
+## Challenges & honesty (what is NOT done, stated plainly)
+
+- **WizardConnect scope today:** pairing, session handling and pubkey →
+  address derivation are implemented against the official packages. The
+  sign-and-broadcast step additionally needs live UTXO discovery for the
+  connected wallet (an indexer round-trip); the transaction builders it
+  will feed are complete and unit-tested, but the connected-wallet send
+  has **not yet been exercised end-to-end with a real wallet** — the
+  BIP21 QR path is the fully-proven send path in this submission.
+- **No mainnet transaction has been broadcast by EmberPay itself** — by
+  design. Payments are always created and signed in the *payer's* wallet;
+  our own project wallet exists to receive donations and EMBER2026 votes.
+- **The demo's sample token category** (in the terminal demo) is a labelled
+  placeholder — sha256 of a fixed string — used so the token flow can be
+  tried without a real token. Real categories slot in unchanged.
+- **Hackathon process gates** (from the official page) are tracked in
+  [SUBMISSION-CHECKLIST.md](SUBMISSION-CHECKLIST.md), including the two
+  that need a human: attending one preparation stream (roll call) and
+  confirming the project in the BLAZE Telegram channel.
+
+## What's next
+
+- **Immediate:** in-browser UTXO discovery (public indexer) so the
+  WizardConnect sign-and-broadcast path runs end-to-end in the demo.
+- **Next:** recurring payment links (subscriptions), multi-recipient split
+  links, and CashTokens-denominated price oracles (token amount ⇄ fiat).
+- **Platform:** a merchant mode with webhook notifications and an embeddable
+  "Pay with EmberPay" button — same link format, no new infrastructure.
+
+## Project structure
+
+```
+index.html            Live demo (GitHub Pages) incl. the BLAZE banner
+app.js                Demo UI (create + pay views, asset-aware)
+wallet-connect.js     WizardConnect pairing / pubkey / address derivation
+src/
+  invoice.js          Invoice model, satoshi math, link payload codec
+  nlp.js              Natural-language invoice assistant
+  payuri.js           BIP21 payment URI build/parse
+  address.js          CashAddress + token-address helpers (Libauth)
+  tx.js               BCH + CashToken transaction assembly, coin selection, fees
+  libauth-helpers.js  P2PKH locking bytecode, tx serialization wrappers
+test/                 25 tests across every src module
+scripts/
+  demo-invoice.js     Terminal demo of the assistant (BCH + CashToken)
+  generate-wallet.js  Creates the project donation/voting wallet
+                      (key written outside the repo, mode 0600)
+project-addresses.json  Public project addresses
+BUIDL.md              DoraHacks submission fields, ready to paste
+SUBMISSION-CHECKLIST.md Every official requirement, ticked or assigned
+```
 
 ## Team
 
-Solo build by **bejo** (DoraHacks: `hacker8d060a3`) for BCH BLAZE 2026.
-All code in this repository was written during the hackathon submission window.
+Solo build by **bejo** (DoraHacks `hacker8d060a3`, GitHub `Abdul99090`) for
+BCH BLAZE 2026. All code in this repository was written during the
+hackathon submission window; there is no pre-existing work to disclose.
 
 ## License
 

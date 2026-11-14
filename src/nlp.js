@@ -22,14 +22,31 @@ const SATS_AMOUNT_RE = /(\d{1,12})\s*(?:sats?|satoshis?)\b/i;
  * @param {string} text
  * @returns {{
  *   amountSats: string|null, to: string|null, label: string,
- *   memo: string, missing: string[]
+ *   memo: string, missing: string[],
+ *   tokenAmount: string|null, tokenSymbol: string|null, tokenCategory: string|null
  * }}
  */
 export function parseInvoiceText(text) {
   if (typeof text !== 'string' || text.trim().length === 0) {
-    return { amountSats: null, to: null, label: '', memo: '', missing: ['amount', 'recipient'] };
+    return {
+      amountSats: null, to: null, label: '', memo: '',
+      missing: ['amount', 'recipient'],
+      tokenAmount: null, tokenSymbol: null, tokenCategory: null,
+    };
   }
   const missing = [];
+
+  // CashToken phrasing: "100 EMBER tokens", optionally with a category id.
+  let tokenAmount = null;
+  let tokenSymbol = null;
+  let tokenCategory = null;
+  const tokenMatch = /(\d{1,18})\s+([A-Za-z][A-Za-z0-9]{1,11})\s+tokens?\b/i.exec(text);
+  if (tokenMatch) {
+    tokenAmount = BigInt(tokenMatch[1]).toString();
+    tokenSymbol = tokenMatch[2].toUpperCase();
+  }
+  const categoryMatch = /\b([0-9a-f]{64})\b/i.exec(text);
+  if (categoryMatch) tokenCategory = categoryMatch[1].toLowerCase();
 
   // Recipient
   const addrMatch = ADDRESS_RE.exec(text);
@@ -45,7 +62,7 @@ export function parseInvoiceText(text) {
   } else if (satsMatch) {
     amountSats = BigInt(satsMatch[1]).toString();
   }
-  if (amountSats === null) missing.push('amount');
+  if (amountSats === null && tokenAmount === null) missing.push('amount');
 
   // Memo — "note: ..." or "memo: ..." to end of string.
   let memo = '';
@@ -59,10 +76,11 @@ export function parseInvoiceText(text) {
     label = forMatch[1];
     if (memoMatch) label = label.replace(/(?:note|memo)\s*:\s*.+$/i, '').trim();
     if (addrMatch) label = label.replace(ADDRESS_RE, '').trim();
+    label = label.replace(/,?\s*category\s+[0-9a-f]{64}\b/i, '').replace(/\b[0-9a-f]{64}\b/i, '').trim();
     label = label.replace(/\s+/g, ' ').replace(/[.,\s]+$/, '').trim();
     // Capitalise first letter for display.
     if (label) label = label[0].toUpperCase() + label.slice(1);
   }
 
-  return { amountSats, to, label, memo, missing };
+  return { amountSats, to, label, memo, missing, tokenAmount, tokenSymbol, tokenCategory };
 }

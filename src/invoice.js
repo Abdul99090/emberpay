@@ -42,13 +42,58 @@ export function satoshisToBch(sats) {
   return `${whole.toString()}.${fracStr}`;
 }
 
+/**
+ * Normalise/validate the asset an invoice is denominated in.
+ * BCH is the default. A CashToken asset makes EmberPay's link carry the
+ * full token terms (category + amount, or one specific NFT) — the payer's
+ * wallet then settles in that token, with a small BCH "carrier" amount
+ * riding on the token output (CashTokens live inside BCH outputs).
+ */
+function normaliseAsset(asset, amountSats) {
+  if (asset === undefined || asset === null || asset.type === 'bch') {
+    return { asset: { type: 'bch' }, amountSats };
+  }
+  if (asset.type !== 'cashtoken') {
+    throw new Error(`unknown asset type: ${asset.type}`);
+  }
+  const category = String(asset.category ?? '').toLowerCase();
+  if (!/^[0-9a-f]{64}$/.test(category)) {
+    throw new Error('CashToken asset requires a 32-byte category id (64 hex chars)');
+  }
+  const out = { type: 'cashtoken', category };
+  if (asset.nft) {
+    const capability = asset.nft.capability ?? 'none';
+    if (!['none', 'mutable', 'minting'].includes(capability)) {
+      throw new Error(`unknown NFT capability: ${capability}`);
+    }
+    out.nft = {
+      capability,
+      commitment: String(asset.nft.commitment ?? '').toLowerCase(),
+    };
+    if (out.nft.commitment && !/^([0-9a-f]{2})+$/.test(out.nft.commitment)) {
+      throw new Error('NFT commitment must be hex');
+    }
+  } else {
+    const amount = BigInt(asset.amount ?? '0');
+    if (amount <= 0n) throw new Error('token amount must be greater than zero');
+    out.amount = amount.toString();
+  }
+  if (asset.symbol) out.symbol = String(asset.symbol).slice(0, 12);
+  // Token outputs need a BCH carrier; default to 1000 sats when unspecified.
+  return { asset: out, amountSats: amountSats ?? 1000n };
+}
+
 let counter = 0;
 
 /**
  * Create an invoice object.
  * @param {object} fields
  * @param {string} fields.to CashAddress of the recipient (bitcoincash: or bchtest:)
- * @param {bigint|number} fields.amountSats amount in satoshis (> 0)
+ * @param {bigint|number} [fields.amountSats] BCH amount in satoshis (> 0);
+ *   for CashToken invoices this is the BCH carrier on the token output
+ *   (defaults to 1000)
+ * @param {object} [fields.asset] {type:'bch'} (default) or
+ *   {type:'cashtoken', category, amount} / {type:'cashtoken', category, nft}
  * @param {string} [fields.label] short human label, e.g. "Logo design"
  * @param {string} [fields.memo] optional longer note
  * @param {'mainnet'|'chipnet'} [fields.network]
@@ -58,7 +103,6 @@ let counter = 0;
 export function createInvoice(fields) {
   const {
     to,
-    amountSats,
     label = '',
     memo = '',
     network = 'mainnet',
@@ -68,6 +112,7 @@ export function createInvoice(fields) {
   if (typeof to !== 'string' || to.length === 0) {
     throw new Error('invoice requires a recipient address ("to")');
   }
+  const { asset, amountSats } = normaliseAsset(fields?.asset, fields?.amountSats);
   const sats = BigInt(amountSats);
   if (sats <= 0n) throw new Error('invoice amount must be greater than zero');
   if (network !== 'mainnet' && network !== 'chipnet') {
@@ -79,6 +124,7 @@ export function createInvoice(fields) {
     id: id ?? `inv-${Date.now().toString(36)}-${counter}`,
     to,
     amountSats: sats.toString(),
+    asset,
     label: String(label).slice(0, 80),
     memo: String(memo).slice(0, 280),
     network,
@@ -128,6 +174,7 @@ export function payloadToInvoice(payload) {
   return createInvoice({
     to: parsed.to,
     amountSats: BigInt(parsed.amountSats),
+    asset: parsed.asset ?? { type: 'bch' },
     label: parsed.label ?? '',
     memo: parsed.memo ?? '',
     network: parsed.network ?? 'mainnet',
