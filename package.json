@@ -1,0 +1,19 @@
+{
+  "dependencies": {
+    "@bitauth/libauth": "^3.0.0",
+    "@wizardconnect/core": "^0.2.10",
+    "@wizardconnect/dapp": "^0.2.7",
+    "qrcode": "^1.5.4"
+  },
+  "description": "EmberPay \u2014 one-link Bitcoin Cash payment requests with a natural-language invoice assistant. Built for BCH BLAZE 2026.",
+  "license": "MIT",
+  "name": "emberpay",
+  "private": true,
+  "scripts": {
+    "demo": "node scripts/demo-invoice.js",
+    "test": "node --test",
+    "wallet": "node scripts/generate-wallet.js"
+  },
+  "type": "module",
+  "version": "1.0.0"
+}

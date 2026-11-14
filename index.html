@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>EmberPay — One-link Bitcoin Cash payments</title>
+<meta name="description" content="EmberPay turns one sentence into a shareable Bitcoin Cash payment link. Non-custodial, near-zero fees, WizardConnect + BIP21 QR built in. Built for BCH BLAZE 2026." />
+<link rel="stylesheet" href="./style.css" />
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "@wizardconnect/core": "https://esm.sh/@wizardconnect/core@0.2.10",
+    "@wizardconnect/dapp": "https://esm.sh/@wizardconnect/dapp@0.2.7",
+    "@bitauth/libauth": "https://esm.sh/@bitauth/libauth@3.0.0"
+  }
+}
+</script>
+</head>
+<body>
+
+<!-- ══════════ REQUIRED BLAZE BANNER (top of page) ══════════ -->
+<div class="blaze-banner">
+  <span class="blaze-banner-title">🔥 BCH BLAZE 2026 — EmberPay</span>
+  <a href="https://docs.google.com/presentation/d/1Yfuk9CJkf4U9M_WukcELhumWgj3Ak6345Ewy8hSp-Hk/edit?usp=sharing" target="_blank" rel="noopener">📊 Project presentation</a>
+  <a href="https://github.com/Abdul99090/emberpay" target="_blank" rel="noopener">💻 Source code (GitHub)</a>
+  <span class="blaze-banner-donate">💚 Vote / donate EMBER2026 (CashTokens):
+    <code id="banner-token-address">loading…</code>
+  </span>
+</div>
+
+<header class="hero">
+  <h1>🔥 EmberPay</h1>
+  <p class="tagline">One sentence in. One payment link out.<br />
+  Bitcoin Cash payments anyone can send — and anyone can pay — in seconds.</p>
+  <div class="wallet-bar">
+    <button id="btn-connect" class="btn btn-primary">🔗 Connect wallet (WizardConnect)</button>
+    <span id="wallet-status" class="wallet-status">Not connected — QR / deep-link payment still works.</span>
+  </div>
+  <div id="wizard-pair" class="wizard-pair hidden">
+    <p>Scan with a WizardConnect wallet (e.g. Paytaca):</p>
+    <canvas id="wizard-qr" width="220" height="220"></canvas>
+    <code id="wizard-uri" class="wizard-uri"></code>
+  </div>
+</header>
+
+<main>
+  <!-- ── Create view ─────────────────────────────────────────── -->
+  <section id="view-create" class="card">
+    <h2>✍️ Create a payment link</h2>
+    <label class="field">
+      <span>Describe it in one sentence (invoice assistant)</span>
+      <textarea id="nl-input" rows="2" placeholder="e.g. Charge 0.01 BCH for the logo design, note: thank you!"></textarea>
+    </label>
+    <button id="btn-parse" class="btn">✨ Fill the form from my sentence</button>
+
+    <div class="divider">or fill it in directly</div>
+
+    <label class="field">
+      <span>Recipient CashAddress</span>
+      <input id="f-to" type="text" spellcheck="false" />
+    </label>
+    <div class="row">
+      <label class="field">
+        <span>Amount (BCH)</span>
+        <input id="f-amount" type="text" inputmode="decimal" placeholder="0.01" />
+      </label>
+      <label class="field">
+        <span>Label</span>
+        <input id="f-label" type="text" placeholder="Logo design" />
+      </label>
+    </div>
+    <label class="field">
+      <span>Note (optional)</span>
+      <input id="f-memo" type="text" placeholder="Thank you!" />
+    </label>
+    <button id="btn-create" class="btn btn-primary">🔗 Create payment link</button>
+    <p id="create-error" class="error"></p>
+
+    <div id="create-result" class="result hidden">
+      <p>Share this link — the payer needs nothing but a BCH wallet:</p>
+      <div class="link-row">
+        <input id="r-link" type="text" readonly />
+        <button id="btn-copy" class="btn">Copy</button>
+      </div>
+      <canvas id="r-qr" width="220" height="220"></canvas>
+      <p class="hint">QR encodes the BIP21 payment URI directly — Paytaca, Selene and
+      Electron Cash all scan it and pre-fill a real mainnet send.</p>
+    </div>
+  </section>
+
+  <!-- ── Pay view ────────────────────────────────────────────── -->
+  <section id="view-pay" class="card hidden">
+    <h2>💸 Payment request</h2>
+    <div class="pay-amount" id="p-amount">—</div>
+    <div class="pay-label" id="p-label">—</div>
+    <p class="pay-to">To: <code id="p-to">—</code></p>
+    <p class="pay-memo" id="p-memo"></p>
+    <canvas id="p-qr" width="240" height="240"></canvas>
+    <div class="pay-actions">
+      <a id="p-open" class="btn btn-primary" href="#">📱 Open in wallet &amp; pay</a>
+      <button id="btn-new" class="btn">Create your own link</button>
+    </div>
+    <p class="hint">Paying sends a real Bitcoin Cash mainnet transaction from
+    <em>your</em> wallet. EmberPay never touches your keys or your coins.</p>
+  </section>
+
+  <section class="card how">
+    <h2>How it works</h2>
+    <ol>
+      <li><strong>Describe</strong> — type one sentence; the invoice assistant extracts amount, label and note (deterministic parser, runs 100% in your browser).</li>
+      <li><strong>Share</strong> — the invoice becomes a single link. No server, no account, no database: the link <em>is</em> the invoice.</li>
+      <li><strong>Get paid</strong> — the payer scans the QR or taps the link and confirms in their own wallet (WizardConnect or any BIP21 wallet). Settlement is on-chain BCH: seconds, ~1 sat/byte fees.</li>
+    </ol>
+    <p class="hint">Demo tip: the recipient field is pre-filled with EmberPay's own
+    project address, so you can try the full flow immediately — send any tiny
+    amount to test, or just explore. Community-Choice votes: send EMBER2026
+    CashTokens to the token address in the banner above.</p>
+  </section>
+</main>
+
+<footer>
+  <p>EmberPay — built for <strong>BCH BLAZE 2026</strong> (Mainnet Track).
+  Non-custodial · Open source (MIT) ·
+  <a href="https://github.com/Abdul99090/emberpay">GitHub</a></p>
+</footer>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>

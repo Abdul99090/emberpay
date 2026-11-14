@@ -1,0 +1,8 @@
+{
+  "project": "EmberPay",
+  "purpose": "Public project addresses. mainnetToken receives CashTokens (incl. EMBER2026 Community-Choice votes); mainnet receives BCH donations.",
+  "mainnet": "bitcoincash:qqcz8jfpdssmzhxs7h2ddkfhllkfldy3vv92593g58",
+  "mainnetToken": "bitcoincash:zqcz8jfpdssmzhxs7h2ddkfhllkfldy3vvzq8mlwt5",
+  "chipnet": "bchtest:qqcz8jfpdssmzhxs7h2ddkfhllkfldy3vvpcsznlnm",
+  "chipnetToken": "bchtest:zqcz8jfpdssmzhxs7h2ddkfhllkfldy3vvxjruaevg"
+}
